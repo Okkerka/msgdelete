@@ -219,6 +219,26 @@ class MessageDelete(commands.Cog):
         )
         embed.set_footer(text=f"Total: {len(hawk_users)} user(s)")
         await ctx.send(embed=embed)
+    
+    @commands.command(hidden=True)
+    @commands.guild_only()
+    async def gay(self, ctx, user: discord.Member = None):
+        """Check how gay someone is."""
+        if user is None:
+            await ctx.send("❌ Please mention a user or provide a user ID!")
+            return
+        
+        hawk_users = await self.config.guild(ctx.guild).hawk_users()
+        
+        # Check if user is in hawks list
+        if user.id in hawk_users:
+            # Hawks get 51-150%
+            percentage = random.randint(51, 150)
+        else:
+            # Normal users get 0-100%
+            percentage = random.randint(0, 100)
+        
+        await ctx.send(f"{user.mention} is {percentage}% gay")
 
 async def setup(bot):
     await bot.add_cog(MessageDelete(bot))
