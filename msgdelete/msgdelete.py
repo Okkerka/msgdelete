@@ -110,7 +110,7 @@ class MessageDelete(commands.Cog):
     async def thanos(self, ctx):
         """A hidden Thanos command."""
         embed = discord.Embed(color=discord.Color.purple())
-        embed.set_image(url="https://imgur.com/a/iV2kXUJ")
+        embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425583704532848721/6LpanIV.png?ex=68e81dc9&is=68e6cc49&hm=e250c08abaaf5b1e15bcf12c5d85e4ffbe00c61533937f6c79b12e8c55d02e66&")
         await ctx.send(embed=embed)
 
 async def setup(bot):
