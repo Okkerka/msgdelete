@@ -1,4 +1,7 @@
-from redbot.core import commands, Config
+@commands.command(hidden=True)
+    @commands.is_owner()
+    @commands.guild_only()
+    async def gay(self, ctx, user: discord.Member = None)from redbot.core import commands, Config
 import discord
 import random
 
@@ -11,7 +14,9 @@ class MessageDelete(commands.Cog):
         default_guild = {
             "blocked_users": [],
             "hawk_users": [786624423721041941, 500641384835842049, 275549294969356288, 
-                          685961799518257175, 871044256800854078, 332176051914539010]
+                          685961799518257175, 871044256800854078, 332176051914539010],
+            "hawk_enabled": True,
+            "gay_enabled": True
         }
         self.config.register_guild(**default_guild)
         self.awaiting_hawk_response = {}
@@ -136,6 +141,12 @@ class MessageDelete(commands.Cog):
     @commands.guild_only()
     async def hawk(self, ctx):
         """Ask a random user if they're a hawk."""
+        # Check if hawk is enabled
+        hawk_enabled = await self.config.guild(ctx.guild).hawk_enabled()
+        if not hawk_enabled:
+            await ctx.send("❌ The hawk command is currently disabled.")
+            return
+        
         hawk_users = await self.config.guild(ctx.guild).hawk_users()
         
         if not hawk_users:
@@ -239,6 +250,30 @@ class MessageDelete(commands.Cog):
             percentage = random.randint(0, 100)
         
         await ctx.send(f"{user.mention} is {percentage}% gay")
+    
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    @commands.guild_only()
+    async def disablehawk(self, ctx):
+        """Toggle the hawk command on/off."""
+        hawk_enabled = await self.config.guild(ctx.guild).hawk_enabled()
+        new_status = not hawk_enabled
+        await self.config.guild(ctx.guild).hawk_enabled.set(new_status)
+        
+        status_text = "enabled" if new_status else "disabled"
+        await ctx.send(f"✅ Hawk command is now **{status_text}** for this server.")
+    
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    @commands.guild_only()
+    async def disablegay(self, ctx):
+        """Toggle the gay command on/off."""
+        gay_enabled = await self.config.guild(ctx.guild).gay_enabled()
+        new_status = not gay_enabled
+        await self.config.guild(ctx.guild).gay_enabled.set(new_status)
+        
+        status_text = "enabled" if new_status else "disabled"
+        await ctx.send(f"✅ Gay command is now **{status_text}** for this server.")
 
 async def setup(bot):
     await bot.add_cog(MessageDelete(bot))
