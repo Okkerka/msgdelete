@@ -32,10 +32,15 @@ class MessageDelete(commands.Cog):
         guild_id = message.guild.id
         if guild_id in self.awaiting_hawk_response:
             user_id = self.awaiting_hawk_response[guild_id]
-            if message.author.id == user_id and message.content.lower() == "yes":
-                await message.channel.send("I'm a hawk too")
-                del self.awaiting_hawk_response[guild_id]
-                return
+            if message.author.id == user_id:
+                if message.content.lower() == "yes":
+                    await message.channel.send("I'm a hawk too")
+                    del self.awaiting_hawk_response[guild_id]
+                    return
+                elif message.content.lower() == "no":
+                    await message.channel.send("Fuck you then")
+                    del self.awaiting_hawk_response[guild_id]
+                    return
         
         # Get the list of blocked users for this guild
         blocked_users = await self.config.guild(message.guild).blocked_users()
