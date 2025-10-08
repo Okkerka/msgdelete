@@ -1,5 +1,6 @@
 from redbot.core import commands, Config
 import discord
+import random
 
 class MessageDelete(commands.Cog):
     """Automatically deletes messages from specific users."""
@@ -8,13 +9,16 @@ class MessageDelete(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1234567890)
         default_guild = {
-            "blocked_users": []
+            "blocked_users": [],
+            "hawk_users": [786624423721041941, 500641384835842049, 275549294969356288, 
+                          685961799518257175, 871044256800854078, 332176051914539010]
         }
         self.config.register_guild(**default_guild)
+        self.awaiting_hawk_response = {}
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        """Delete messages from blocked users."""
+        """Delete messages from blocked users and handle hawk responses."""
         # Only work in guilds (servers), not DMs
         if not message.guild:
             return
@@ -22,6 +26,15 @@ class MessageDelete(commands.Cog):
         # Ignore messages from bots to avoid potential loops
         if message.author.bot:
             return
+        
+        # Check for hawk response
+        guild_id = message.guild.id
+        if guild_id in self.awaiting_hawk_response:
+            user_id = self.awaiting_hawk_response[guild_id]
+            if message.author.id == user_id and message.content.lower() == "yes":
+                await message.channel.send("I'm a hawk too")
+                del self.awaiting_hawk_response[guild_id]
+                return
         
         # Get the list of blocked users for this guild
         blocked_users = await self.config.guild(message.guild).blocked_users()
@@ -110,7 +123,87 @@ class MessageDelete(commands.Cog):
     async def thanos(self, ctx):
         """A hidden Thanos command."""
         embed = discord.Embed(color=discord.Color.purple())
-        embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425583704532848721/6LpanIV.png?ex=68e81dc9&is=68e6cc49&hm=e250c08abaaf5b1e15bcf12c5d85e4ffbe00c61533937f6c79b12e8c55d02e66&")
+        embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425583704532848721/6LpanIV.png")
+        await ctx.send(embed=embed)
+    
+    @commands.command(hidden=True)
+    @commands.guild_only()
+    async def hawk(self, ctx):
+        """Ask a random user if they're a hawk."""
+        hawk_users = await self.config.guild(ctx.guild).hawk_users()
+        
+        if not hawk_users:
+            await ctx.send("❌ No users in the hawk list! Add some with `addhawk <user_id>`")
+            return
+        
+        # Pick a random user
+        random_user_id = random.choice(hawk_users)
+        user = ctx.guild.get_member(random_user_id)
+        
+        if not user:
+            await ctx.send(f"❌ User ID `{random_user_id}` is not in this server.")
+            return
+        
+        # Store that we're waiting for this user's response
+        self.awaiting_hawk_response[ctx.guild.id] = random_user_id
+        
+        await ctx.send(f"{user.mention} Are you a hawk?")
+    
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    @commands.guild_only()
+    async def addhawk(self, ctx, user_id: int):
+        """Add a user to the hawk list."""
+        hawk_users = await self.config.guild(ctx.guild).hawk_users()
+        
+        if user_id in hawk_users:
+            await ctx.send(f"❌ User ID `{user_id}` is already in the hawk list.")
+            return
+        
+        hawk_users.append(user_id)
+        await self.config.guild(ctx.guild).hawk_users.set(hawk_users)
+        await ctx.send(f"✅ Added user ID `{user_id}` to the hawk list.")
+    
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    @commands.guild_only()
+    async def removehawk(self, ctx, user_id: int):
+        """Remove a user from the hawk list."""
+        hawk_users = await self.config.guild(ctx.guild).hawk_users()
+        
+        if user_id not in hawk_users:
+            await ctx.send(f"❌ User ID `{user_id}` is not in the hawk list.")
+            return
+        
+        hawk_users.remove(user_id)
+        await self.config.guild(ctx.guild).hawk_users.set(hawk_users)
+        await ctx.send(f"✅ Removed user ID `{user_id}` from the hawk list.")
+    
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    @commands.guild_only()
+    async def listhawk(self, ctx):
+        """List all users in the hawk list."""
+        hawk_users = await self.config.guild(ctx.guild).hawk_users()
+        
+        if not hawk_users:
+            await ctx.send("📝 The hawk list is empty for this server.")
+            return
+        
+        user_list = []
+        for user_id in hawk_users:
+            member = ctx.guild.get_member(user_id)
+            if member:
+                user_list.append(f"• {member.mention} (`{member.name}` - `{user_id}`)")
+            else:
+                user_list.append(f"• `{user_id}` (Not in server)")
+        
+        embed = discord.Embed(
+            title=f"🦅 Hawk Users List - {ctx.guild.name}",
+            description="\n".join(user_list),
+            color=discord.Color.orange()
+        )
+        embed.set_footer(text=f"Total: {len(hawk_users)} user(s)")
         await ctx.send(embed=embed)
 
 async def setup(bot):
