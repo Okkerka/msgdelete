@@ -15,6 +15,7 @@ class MessageDelete(commands.Cog):
         }
         self.config.register_guild(**default_guild)
         self.awaiting_hawk_response = {}
+        self.last_hawk_user = {}
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -136,16 +137,24 @@ class MessageDelete(commands.Cog):
             await ctx.send("❌ No users in the hawk list! Add some with `addhawk <user_id>`")
             return
         
-        # Pick a random user
-        random_user_id = random.choice(hawk_users)
+        # Get available users (exclude last pinged user if there are multiple users)
+        available_users = hawk_users.copy()
+        if len(hawk_users) > 1 and ctx.guild.id in self.last_hawk_user:
+            last_user = self.last_hawk_user[ctx.guild.id]
+            if last_user in available_users:
+                available_users.remove(last_user)
+        
+        # Pick a random user from available users
+        random_user_id = random.choice(available_users)
         user = ctx.guild.get_member(random_user_id)
         
         if not user:
             await ctx.send(f"❌ User ID `{random_user_id}` is not in this server.")
             return
         
-        # Store that we're waiting for this user's response
+        # Store that we're waiting for this user's response and remember them
         self.awaiting_hawk_response[ctx.guild.id] = random_user_id
+        self.last_hawk_user[ctx.guild.id] = random_user_id
         
         await ctx.send(f"{user.mention} Are you a hawk?")
     
