@@ -1,7 +1,4 @@
-@commands.command(hidden=True)
-    @commands.is_owner()
-    @commands.guild_only()
-    async def gay(self, ctx, user: discord.Member = None)from redbot.core import commands, Config
+from redbot.core import commands, Config
 import discord
 import random
 
@@ -235,6 +232,12 @@ class MessageDelete(commands.Cog):
     @commands.guild_only()
     async def gay(self, ctx, user: discord.Member = None):
         """Check how gay someone is."""
+        # Check if gay is enabled
+        gay_enabled = await self.config.guild(ctx.guild).gay_enabled()
+        if not gay_enabled:
+            await ctx.send("❌ The gay command is currently disabled.")
+            return
+        
         if user is None:
             await ctx.send("❌ Please mention a user or provide a user ID!")
             return
