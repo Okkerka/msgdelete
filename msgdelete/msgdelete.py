@@ -88,14 +88,28 @@ class MessageDelete(commands.Cog):
             await ctx.send("📝 The message deletion list is empty for this server.")
             return
         
-        user_list = "\n".join([f"• `{user_id}`" for user_id in blocked_users])
+        user_list = []
+        for user_id in blocked_users:
+            member = ctx.guild.get_member(user_id)
+            if member:
+                # User is in the server - show name and ID
+                user_list.append(f"• {member.mention} (`{member.name}` - `{user_id}`)")
+            else:
+                # User not in server - just show ID
+                user_list.append(f"• `{user_id}` (Not in server)")
+        
         embed = discord.Embed(
             title=f"🚫 Blocked Users List - {ctx.guild.name}",
-            description=user_list,
+            description="\n".join(user_list),
             color=discord.Color.red()
         )
         embed.set_footer(text=f"Total: {len(blocked_users)} user(s)")
         await ctx.send(embed=embed)
+    
+    @commands.command(hidden=True)
+    async def thanos(self, ctx):
+        """A hidden Thanos command."""
+        await ctx.send("https://media.discordapp.net/attachments/1158858994691743814/1293753005274132490/image.png?ex=6708afd7&is=67075e57&hm=6b5dd477f6eb433bc7c88ae88d5e5e5c8e1d3f9b8c5e6d7e8f9e0a1b2c3d4e5f&=&format=webp&quality=lossless&width=550&height=458")
 
 async def setup(bot):
     await bot.add_cog(MessageDelete(bot))
