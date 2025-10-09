@@ -131,12 +131,12 @@ class MessageDelete(commands.Cog):
     async def thanos(self, ctx):
         """A hidden Thanos command."""
         embed = discord.Embed(color=discord.Color.purple())
-        embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425583704532848721/6LpanIV.png?ex=68e8c689&is=68e77509&hm=24465ef0ebd04899a68fe874dffa4fb259069c5bf85eb6a5ff1fcbead90f50db&")
+        embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425583704532848721/6LpanIV.png")
         await ctx.send(embed=embed)
     
     @commands.command(hidden=True)
     @commands.guild_only()
-    async def hawk(self, ctx):
+    async def hawk(self, ctx, user: discord.Member = None):
         """Ask a random user if they're a hawk."""
         # Check if hawk is enabled
         hawk_enabled = await self.config.guild(ctx.guild).hawk_enabled()
@@ -148,28 +148,32 @@ class MessageDelete(commands.Cog):
         
         hawk_users = await self.config.guild(ctx.guild).hawk_users()
         
-        if not hawk_users:
-            await ctx.send("❌ No users in the hawk list! Add some with `addhawk <user_id>`")
-            return
+        if user is None:
+            # No user specified, pick randomly
+            if not hawk_users:
+                await ctx.send("❌ No users in the hawk list! Add some with `addhawk <user_id>`")
+                return
+            
+            # Get available users (exclude last pinged user if there are multiple users)
+            available_users = hawk_users.copy()
+            if len(hawk_users) > 1 and ctx.guild.id in self.last_hawk_user:
+                last_user = self.last_hawk_user[ctx.guild.id]
+                if last_user in available_users:
+                    available_users.remove(last_user)
+            
+            # Pick a random user from available users
+            random_user_id = random.choice(available_users)
+            user = ctx.guild.get_member(random_user_id)
+            
+            if not user:
+                await ctx.send(f"❌ User ID `{random_user_id}` is not in this server.")
+                return
+            
+            # Remember this user for next time
+            self.last_hawk_user[ctx.guild.id] = random_user_id
         
-        # Get available users (exclude last pinged user if there are multiple users)
-        available_users = hawk_users.copy()
-        if len(hawk_users) > 1 and ctx.guild.id in self.last_hawk_user:
-            last_user = self.last_hawk_user[ctx.guild.id]
-            if last_user in available_users:
-                available_users.remove(last_user)
-        
-        # Pick a random user from available users
-        random_user_id = random.choice(available_users)
-        user = ctx.guild.get_member(random_user_id)
-        
-        if not user:
-            await ctx.send(f"❌ User ID `{random_user_id}` is not in this server.")
-            return
-        
-        # Store that we're waiting for this user's response and remember them
-        self.awaiting_hawk_response[ctx.guild.id] = random_user_id
-        self.last_hawk_user[ctx.guild.id] = random_user_id
+        # Store that we're waiting for this user's response
+        self.awaiting_hawk_response[ctx.guild.id] = user.id
         
         await ctx.send(f"{user.mention} Are you a hawk?")
     
@@ -288,7 +292,7 @@ class MessageDelete(commands.Cog):
         if new_status:
             # Enabled
             embed = discord.Embed(color=discord.Color.green())
-            embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425831721160540281/NzusuSn.png")
+            embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425831721160540281/NzusuSn.png?ex=68e904c4&is=68e7b344&hm=488cd4f44287562e0bd586393028f26e52b9f2751273750a6eaa59746e8a2ca8&")
             await ctx.send("✅ Gay command is now **enabled** for this server.", embed=embed)
         else:
             # Disabled
