@@ -131,7 +131,7 @@ class MessageDelete(commands.Cog):
     async def thanos(self, ctx):
         """A hidden Thanos command."""
         embed = discord.Embed(color=discord.Color.purple())
-        embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425583704532848721/6LpanIV.png")
+        embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425583704532848721/6LpanIV.png?ex=68e8c689&is=68e77509&hm=24465ef0ebd04899a68fe874dffa4fb259069c5bf85eb6a5ff1fcbead90f50db&")
         await ctx.send(embed=embed)
     
     @commands.command(hidden=True)
@@ -141,7 +141,9 @@ class MessageDelete(commands.Cog):
         # Check if hawk is enabled
         hawk_enabled = await self.config.guild(ctx.guild).hawk_enabled()
         if not hawk_enabled:
-            await ctx.send("❌ The hawk command is currently disabled.")
+            embed = discord.Embed(color=discord.Color.red())
+            embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425831928644501624/4rMETw3.gif?ex=68e904f6&is=68e7b376&hm=1ecb58aa1ff4dde97605e202c9069900fcd211b6aaf61b9bf31cdb9559d945a9&")
+            await ctx.send("❌ The hawk command is currently disabled.", embed=embed)
             return
         
         hawk_users = await self.config.guild(ctx.guild).hawk_users()
@@ -235,7 +237,9 @@ class MessageDelete(commands.Cog):
         # Check if gay is enabled
         gay_enabled = await self.config.guild(ctx.guild).gay_enabled()
         if not gay_enabled:
-            await ctx.send("❌ The gay command is currently disabled.")
+            embed = discord.Embed(color=discord.Color.red())
+            embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425831928644501624/4rMETw3.gif?ex=68e904f6&is=68e7b376&hm=1ecb58aa1ff4dde97605e202c9069900fcd211b6aaf61b9bf31cdb9559d945a9&")
+            await ctx.send("❌ The gay command is currently disabled.", embed=embed)
             return
         
         if user is None:
@@ -263,8 +267,14 @@ class MessageDelete(commands.Cog):
         new_status = not hawk_enabled
         await self.config.guild(ctx.guild).hawk_enabled.set(new_status)
         
-        status_text = "enabled" if new_status else "disabled"
-        await ctx.send(f"✅ Hawk command is now **{status_text}** for this server.")
+        if new_status:
+            # Enabled
+            embed = discord.Embed(color=discord.Color.green())
+            embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425831721160540281/NzusuSn.png?ex=68e904c4&is=68e7b344&hm=488cd4f44287562e0bd586393028f26e52b9f2751273750a6eaa59746e8a2ca8&")
+            await ctx.send("✅ Hawk command is now **enabled** for this server.", embed=embed)
+        else:
+            # Disabled
+            await ctx.send("✅ Hawk command is now **disabled** for this server.")
     
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -275,8 +285,14 @@ class MessageDelete(commands.Cog):
         new_status = not gay_enabled
         await self.config.guild(ctx.guild).gay_enabled.set(new_status)
         
-        status_text = "enabled" if new_status else "disabled"
-        await ctx.send(f"✅ Gay command is now **{status_text}** for this server.")
+        if new_status:
+            # Enabled
+            embed = discord.Embed(color=discord.Color.green())
+            embed.set_image(url="https://cdn.discordapp.com/attachments/1069748983293022249/1425831721160540281/NzusuSn.png")
+            await ctx.send("✅ Gay command is now **enabled** for this server.", embed=embed)
+        else:
+            # Disabled
+            await ctx.send("✅ Gay command is now **disabled** for this server.")
 
 async def setup(bot):
     await bot.add_cog(MessageDelete(bot))
